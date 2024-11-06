@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mySandesh Day Counter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Mono&display=swap" rel="stylesheet">
+    <meta property="og:title" content="mySandesh Day Counter">
+    <meta property="og:description" content="Tracking days since February 14, 2024">
+    <meta property="og:image" content="https://your-domain.com/preview-image.png">
+    <meta property="og:url" content="https://your-domain.com">
+    <meta name="twitter:card" content="summary_large_image">
+    <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --text-color: #000;
+            --decimal-color: #666;
+            --highlight-bg: #ffff80;
+            --highlight-hover: #fff666;
+        }
+
+        .dark-theme {
+            --bg-color: #111;
+            --text-color: #fff;
+            --decimal-color: #999;
+            --highlight-bg: #3d3d00;
+            --highlight-hover: #4d4d00;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        .brand {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 3rem;
+            letter-spacing: -0.5px;
+        }
+        .counter {
+            text-align: center;
+            transition: transform 0.1s ease-out;
+            will-change: transform;
+        }
+        .day-label {
+            font-size: 4rem;
+            margin: 0;
+            font-weight: bold;
+            letter-spacing: -1px;
+        }
+        .number {
+            font-size: 5rem;
+            margin: 0;
+            font-weight: bold;
+        }
+        .decimal {
+            font-size: 2rem;
+            margin-top: 1rem;
+            font-family: 'Space Mono', monospace;
+            color: var(--decimal-color);
+        }
+        .highlight {
+            background: var(--highlight-bg);
+            padding: 0.2rem 0.5rem;
+            display: inline-block;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .highlight:hover {
+            background: var(--highlight-hover);
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: var(--bg-color);
+                color: var(--text-color);
+            }
+            .decimal {
+                color: var(--decimal-color);
+            }
+            .highlight {
+                background: var(--highlight-bg);
+            }
+            .highlight:hover {
+                background: var(--highlight-hover);
+            }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .day-label {
+                font-size: 3rem;
+            }
+            .decimal {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Add subtle animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .brand, .counter {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 0.5rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        .theme-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle:hover .theme-icon {
+            transform: rotate(45deg);
+        }
+
+        .loading {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading::after {
+            content: '';
+            width: 40px;
+            height: 40px;
+            border: 3px solid #ffff80;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .subscription-counter {
+            margin-top: 3rem;
+            opacity: 0.8;
+            transform: scale(0.9);
+        }
+
+        .subscription-counter {
+            animation: fadeIn 0.8s ease-out 0.2s backwards;
+        }
+
+        .quote-container {
+            margin-top: 3rem;
+            max-width: 600px;
+            text-align: center;
+            animation: fadeIn 0.8s ease-out 0.4s backwards;
+        }
+
+        .quote {
+            font-size: 1.2rem;
+            font-style: italic;
+            color: var(--text-color);
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .quote-author {
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            color: var(--decimal-color);
+        }
+
+        .progress-container {
+            margin-top: 3rem;
+            width: 80%;
+            max-width: 600px;
+            animation: fadeIn 0.8s ease-out 0.8s backwards;
+        }
+
+        .progress-label {
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-percentage {
+            font-family: 'Space Mono', monospace;
+            color: var(--decimal-color);
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: var(--highlight-bg);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #4CAF50;
+            width: 0%;
+            transition: width 1s ease;
+            border-radius: 6px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .progress-fill {
+                background: #2E7D32;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="brand">
+    mySandesh
+</div>
+
+<button class="theme-toggle" onclick="toggleTheme()">
+    <span class="theme-icon">🌙</span>
+</button>
+
+<div class="counter">
+    <div class="day-label">Day <span class="highlight" id="dayCount">2059</span></div>
+    <div class="decimal" id="decimalCount">2059.612582</div>
+</div>
+
+<div class="counter subscription-counter">
+    <div class="day-label">Days since subscription <span class="highlight" id="subscriptionCount">0</span></div>
+    <div class="decimal" id="subscriptionDecimal">0.000000</div>
+</div>
+
+<!-- Add after the subscription counter -->
+<div class="quote-container">
+    <p id="dailyQuote" class="quote"></p>
+    <p id="quoteAuthor" class="quote-author"></p>
+</div>
+
+<!-- Add after the quote container -->
+<div class="progress-container">
+    <div class="progress-label">
+        <span>2024 Progress</span>
+        <span class="progress-percentage" id="progressPercentage">0%</span>
+    </div>
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+</div>
+
+<script>
+    function calculateDays() {
+        const launchDate = new Date("2024-02-14");
+        const subscriptionDate = new Date("2024-08-14");
+        const now = new Date();
+        
+        const diffTime = now - launchDate;
+        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+        
+        document.getElementById("dayCount").innerText = Math.floor(diffDays);
+        document.getElementById("decimalCount").innerText = diffDays.toFixed(6);
+        
+        const subscriptionDiffTime = now - subscriptionDate;
+        const subscriptionDiffDays = subscriptionDiffTime / (1000 * 60 * 60 * 24);
+        
+        document.getElementById("subscriptionCount").innerText = Math.floor(subscriptionDiffDays);
+        document.getElementById("subscriptionDecimal").innerText = subscriptionDiffDays.toFixed(6);
+    }
+
+    // Smoother updates
+    setInterval(calculateDays, 50);
+    calculateDays();
+
+    // Add page load transition
+    document.addEventListener('DOMContentLoaded', function() {
+        document.body.style.opacity = 1;
+    });
+
+    function toggleTheme() {
+        document.body.classList.toggle('dark-theme');
+        const icon = document.querySelector('.theme-icon');
+        icon.textContent = document.body.classList.contains('dark-theme') ? '☀️' : '🌙';
+    }
+
+    // Improved parallax effect
+    document.addEventListener('mousemove', (e) => {
+        requestAnimationFrame(() => {
+            const counter = document.querySelector('.counter');
+            const { clientX, clientY } = e;
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            // Reduced movement amount for subtler effect
+            const moveX = (clientX - centerX) / 100;
+            const moveY = (clientY - centerY) / 100;
+            
+            counter.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const loader = document.querySelector('.loading');
+        setTimeout(() => {
+            loader.style.opacity = '0';
+            setTimeout(() => loader.remove(), 500);
+        }, 800);
+    });
+
+    const quotes = [
+        // Product Development Motivation
+        { text: "Every line of code is one step closer to changing lives." },
+        { text: "Small daily improvements compound into remarkable results." },
+        { text: "We're not just writing code, we're crafting experiences." },
+        { text: "Today's progress is tomorrow's success." },
+        { text: "Building something that matters, one day at a time." },
+        
+        // Team Spirit
+        { text: "Together we can turn complex problems into elegant solutions." },
+        { text: "Great teams make the impossible possible." },
+        { text: "Innovation happens at the intersection of collaboration and creativity." },
+        { text: "Unity is our strength, excellence is our goal." },
+        
+        // Growth & Learning
+        { text: "Every challenge is an opportunity to learn and grow." },
+        { text: "Push your limits today to expand your possibilities tomorrow." },
+        { text: "The best way to predict the future is to create it." },
+        { text: "Learning never stops, growing never ends." },
+        
+        // Product Vision
+        { text: "We're not just building software, we're empowering communities." },
+        { text: "Every feature we ship brings value to someone's life." },
+        { text: "Think big, start small, move fast." },
+        { text: "Innovation is not about technology, it's about solving human problems." },
+        
+        // Quality & Excellence
+        { text: "Excellence is not a destination, it's a continuous journey." },
+        { text: "Quality is everyone's responsibility." },
+        { text: "Details matter, it's worth waiting to get it right." },
+        
+        // User Focus
+        { text: "Behind every user story is a real person waiting for a solution." },
+        { text: "Our success is measured by our users' success." },
+        { text: "Every user interaction is an opportunity to delight." },
+        
+        // Persistence
+        { text: "Progress over perfection, consistency over intensity." },
+        { text: "Small steps every day lead to big achievements." },
+        { text: "The only way to do great work is to love what you do." },
+        
+        // Innovation
+        { text: "Think different, build different, achieve different." },
+        { text: "Innovation distinguishes between a leader and a follower." },
+        { text: "The best ideas come from solving real problems." }
+    ];
+
+    function updateQuote() {
+        const dayCount = Math.floor((new Date() - new Date("2024-02-14")) / (1000 * 60 * 60 * 24));
+        const quoteIndex = dayCount % quotes.length;
+        
+        document.getElementById('dailyQuote').textContent = `"${quotes[quoteIndex].text}"`;
+        document.getElementById('quoteAuthor').style.display = 'none'; // Hide author element
+    }
+
+    // Add to existing DOMContentLoaded event
+    updateQuote();
+
+    function updateProgress() {
+        const startDate = new Date("2024-01-01");
+        const endDate = new Date("2024-12-31");
+        const now = new Date();
+        
+        const total = endDate - startDate;
+        const current = now - startDate;
+        const progress = (current / total) * 100;
+        const progressPercentage = Math.min(progress, 100);
+        
+        document.getElementById('progressFill').style.width = `${progressPercentage}%`;
+        document.getElementById('progressPercentage').textContent = 
+            `${progressPercentage.toFixed(2)}%`;
+    }
+
+    // Update progress every second
+    setInterval(updateProgress, 1000);
+    updateProgress();
+</script>
+
+</body>
+</html>
